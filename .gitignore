@@ -1,16 +1,4 @@
-# Swarm
+node_modules
+dist
 .swarm
-dist/
-
-# Logs
-logs
-*.log
-npm-debug.log*
-.pnpm-debug.log*
-
-# Dependency directories
-node_modules/
-
-# TypeScript cache
-*.tsbuildinfo
 
