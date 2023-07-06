@@ -1,7 +1,7 @@
-//
-// Copyright (c) 2023 Quadient Group AG
-// SPDX-License-Identifier: MIT
-//
+/**
+ * Copyright (c) 2023 Quadient Group AG
+ * SPDX-License-Identifier: MIT
+ */
 
 export function getDescription(): ScriptDescription {
   return {
