@@ -1,7 +1,7 @@
 {
-  "name": "transformd-demo-component",
+  "name": "transformd-demo-connector",
   "version": "0.0.1",
-  "description": "A demo Evolve component for connecting to Transformd",
+  "description": "A demo Evolve component for integrating with Transformd",
   "main": "src/index.ts",
   "private": true,
   "scripts": {
@@ -10,6 +10,6 @@
   },
   "devDependencies": {
     "typescript": "^4.7.4",
-    "@quadient/evolve-scripting-api": "latest"
+    "@quadient/evolve-scripting-api": "^0.0.39"
   }
 }
