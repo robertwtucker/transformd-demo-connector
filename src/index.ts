@@ -12,14 +12,15 @@ export function getDescription(): ScriptDescription {
       {
         id: 'inputDataFile',
         displayName: 'Input Data File',
-        description: 'Input data file to read from.',
+        description: 'JSON-formatted input data file to read from.',
         type: 'InputResource',
         required: true,
       },
       {
         id: 'outputDataFile',
         displayName: 'Output Data File',
-        description: 'Output data file to write the URL-enhanced data to.',
+        description:
+          'Output data file to write the URL-enhanced data to (will be JSON format).',
         type: 'OutputResource',
         required: true,
       },
@@ -27,15 +28,16 @@ export function getDescription(): ScriptDescription {
         id: 'outputDataPath',
         displayName: 'URL Data JSONPath Expression',
         description:
-          'A JSONPath expression for the data element to update with the URL of the Form Session. If the path provided does not exist, it will be created. If the path provided cannot be resolved or the expression is invalid, the job will fail.',
+          'A JSONPath expression indicating the data element(s) to update with the Form Session URL. If the path provided does not exist, it will be created. If the path provided cannot be resolved or the expression is invalid, the job will fail.',
         defaultValue: '$.Clients[*].variableName',
-        type: 'OutputResource',
+        type: 'String',
         required: true,
       },
       {
         id: 'webhookUrl',
         displayName: 'Webhook URL',
-        description: 'The URL of the webhook that initiates the Form Session.',
+        description:
+          'The URL of the Transformd webhook that initiates the Form Session.',
         defaultValue: 'https://api.transformd.com/hooks/',
         type: 'String',
         required: true,
@@ -44,7 +46,7 @@ export function getDescription(): ScriptDescription {
         id: 'webhookUsername',
         displayName: 'Webhook Username',
         description:
-          'The username to use when initiating the Form Session via the webhook. If blank, no authentication will be performed.',
+          'The username to use when initiating the Form Session via the Transformd webhook. If blank, no authentication header (HTTP Basic) will be sent.',
         type: 'String',
         required: false,
       },
@@ -52,7 +54,7 @@ export function getDescription(): ScriptDescription {
         id: 'webhookPassword',
         displayName: 'Webhook Password',
         description:
-          'The password to use when initiating the Form Session via the webhook. If blank, no authentication will be performed.',
+          'The password to use when initiating the Form Session via the Transformd webhook. If blank, no authentication header (HTTP Basic) will be sent.',
         type: 'Secret',
         required: false,
       },
@@ -69,7 +71,7 @@ export function getDescription(): ScriptDescription {
         displayName: 'Profile (Dataset) ID',
         description:
           'The Transformd Profile (Dataset) ID associated with the Form to be used.',
-        type: 'Number',
+        type: 'String',
         required: true,
       },
       {
@@ -96,5 +98,42 @@ export function getDescription(): ScriptDescription {
 }
 
 export async function execute(context: Context): Promise<void> {
-  console.log('Hello world.')
+  // Open input data fiie
+  console.log(`Reading from ${context.parameters.inputDataFile}`)
+  const inputFile = await context.openReadText(
+    context.parameters.inputDataFile as string
+  )
+
+  // Delete output data file, if it exists
+  try {
+    console.log(`Deleting ${context.parameters.outputDataFile}`)
+    await context.getFile(context.parameters.outputDataFile as string).delete()
+  } catch (err) {
+    // Ignore error if file does not exist
+  }
+
+  // Get the rest of the input parameters
+  const outputDataPath = context.parameters.outputDataPath
+  const webhookUrl = context.parameters.webhookUrl
+  const webhookUsername = context.parameters.webhookUsername
+  const webhookPassword = context.parameters.webhookPassword
+  const apiKey = context.parameters.apiKey
+  const profileId = context.parameters.profileId
+  const sessionIdSearchKey = context.parameters.sessionIdSearchKey
+  const sessionIdSearchValue = context.parameters.sessionIdSearchValue
+
+  // Process input data File
+
+  // Call webhook and process response
+
+  // Call profile lookup api with search params and process response
+
+  // Update input data file content with URL
+
+  // Open output data file
+  const outputFile = await context.openWriteText(
+    context.parameters.target as string
+  )
+
+  // Write output stream to data file
 }
