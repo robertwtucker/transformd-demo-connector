@@ -17,11 +17,9 @@ export class TransformdDemoWebhookClient {
   }
 
   /**
-   * Calls the Transformd Demo Webhook with an object as the body of the
-   * request.
-   * to initiate a Form Session.
-   * @param payload {object} An object (JSON) to send as the body
-   * @returns Parsed object representing the response
+   * Calls the Transformd Demo Webhook with an to initiate a Form Session.
+   * @param {object} payload An object (JSON) to send as the body
+   * @returns {Promise<TransformdDemoWebhookResponse>} Parsed object
    */
   async send(payload: object): Promise<TransformdDemoWebhookResponse> {
     const headers = new Headers()
