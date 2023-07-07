@@ -44,6 +44,10 @@ export class TransformdDemoWebhookClient {
       body: JSON.stringify(payload),
     })
 
+    if (!response.ok) {
+      throw new Error(`Webhook error ${response.status}-${response.statusText}`)
+    }
+
     return response.json()
   }
 }
