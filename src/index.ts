@@ -3,6 +3,9 @@
  * SPDX-License-Identifier: MIT
  */
 
+import { TransformdApiClient } from './api/transformdApiClient'
+import { TransformdDemoWebhookClient } from './webhook/transformdDemoWebhookClient'
+
 export function getDescription(): ScriptDescription {
   return {
     description:
@@ -59,11 +62,11 @@ export function getDescription(): ScriptDescription {
         required: false,
       },
       {
-        id: 'apiKey',
-        displayName: 'Transformd API Key',
-        description:
-          'The key to use when authenticating with the Transformd API.',
-        type: 'Secret',
+        id: 'apiUrl',
+        displayName: 'Transformd API URL',
+        description: 'The base URL for the Transformd API.',
+        defaultValue: 'https://api.transformd.com',
+        type: 'String',
         required: true,
       },
       {
@@ -120,26 +123,63 @@ export async function execute(context: Context): Promise<void> {
   }
 
   // Get the rest of the input parameters
-  const outputDataPath = context.parameters.outputDataPath
-  const webhookUrl = context.parameters.webhookUrl
-  const webhookUsername = context.parameters.webhookUsername
-  const webhookPassword = context.parameters.webhookPassword
-  const apiKey = context.parameters.apiKey
-  const profileId = context.parameters.profileId
-  const sessionIdSearchKey = context.parameters.sessionIdSearchKey
-  const sessionIdSearchValue = context.parameters.sessionIdSearchValue
+  const outputDataPath = context.parameters.outputDataPath as string
+  const webhookUrl = context.parameters.webhookUrl as string
+  const webhookUsername = context.parameters.webhookUsername as string
+  const webhookPassword = context.parameters.webhookPassword as string
+  const apiUrl = context.parameters.apiUrl as string
+  const apiKey = context.parameters.apiKey as string
+  const profileId = context.parameters.profileId as string
+  const sessionIdSearchKey = context.parameters.sessionIdSearchKey as string
+  const sessionIdSearchValue = context.parameters.sessionIdSearchValue as string
 
   // Process input data File
 
   // Call webhook and process response
+  const webhookClient = new TransformdDemoWebhookClient(
+    webhookUrl,
+    webhookUsername,
+    webhookPassword
+  )
+
+  const webhookResponse = await webhookClient.send({ foo: 'bar' })
+  if (webhookResponse.status != 'created') {
+    throw new Error(`Webhook response status: ${webhookResponse.status}`)
+  }
 
   // Call profile lookup api with search params and process response
+  const apiClient = new TransformdApiClient(apiUrl, apiKey)
+  await apiClient.getAuthToken()
+  const profileResponse = await apiClient.searchProfile(
+    profileId,
+    sessionIdSearchKey,
+    sessionIdSearchValue
+  )
+
+  if (profileResponse.success) {
+    switch (profileResponse.data.count) {
+      case 0:
+        throw new Error(
+          `No profile found with search params: ${profileId}, ${sessionIdSearchKey}, ${sessionIdSearchValue}`
+        )
+      case 1:
+        break // Continue
+      default:
+        throw new Error(
+          `Multiple profiles found with search params: ${profileId}, ${sessionIdSearchKey}, ${sessionIdSearchValue}`
+        )
+    }
+  } else {
+    throw new Error(`Profile response status: ${profileResponse.success}`)
+  }
 
   // Update input data file content with URL
+  const formSessionUrl = profileResponse.data.records[0].values.url
+  console.log(`Form Session URL: ${formSessionUrl}`)
 
   // Open output data file
   const outputFile = await context.openWriteText(
-    context.parameters.target as string
+    context.parameters.outputDataFile as string
   )
 
   // Write output stream to data file
