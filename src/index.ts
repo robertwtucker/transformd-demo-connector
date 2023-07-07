@@ -86,9 +86,16 @@ export function getDescription(): ScriptDescription {
         id: 'sessionIdSearchValue',
         displayName: 'Form Session Search Value Path',
         description:
-          'A JSONPath expression for the input data element(s) \
-          to use to match the unique Session ID.',
+          'A JSONPath expression for the input data element(s) to use to match the unique Session ID.',
         defaultValue: 'concat($.Clients[*].ClientID,"-",$.Clients[*].ClaimID)',
+        type: 'String',
+        required: true,
+      },
+      {
+        id: 'sessionUrlKey',
+        displayName: 'Form Session URL Key Name',
+        description: 'The key name associated with the Form Session URL.',
+        defaultValue: '64a54c3631e6326de51ca7a2',
         type: 'String',
         required: true,
       },
