@@ -144,7 +144,9 @@ export async function execute(context: Context): Promise<void> {
 
   const webhookResponse = await webhookClient.send({ foo: 'bar' })
   if (webhookResponse.status != 'created') {
-    throw new Error(`Webhook response status: ${webhookResponse.status}`)
+    // TODO: Check to see what status' other than created exist
+    // throw new Error(`Webhook response status: ${webhookResponse.status}`)
+    console.log(`Webhook response status: ${webhookResponse.status}`)
   }
 
   // Call profile lookup api with search params and process response
@@ -160,13 +162,13 @@ export async function execute(context: Context): Promise<void> {
     switch (profileResponse.data.count) {
       case 0:
         throw new Error(
-          `No profile found with search params: ${profileId}, ${sessionIdSearchKey}, ${sessionIdSearchValue}`
+          `No profile found with search params: id=${profileId}, ${sessionIdSearchKey}=${sessionIdSearchValue}`
         )
       case 1:
         break // Continue
       default:
         throw new Error(
-          `Multiple profiles found with search params: ${profileId}, ${sessionIdSearchKey}, ${sessionIdSearchValue}`
+          `Multiple profiles found with search params: id=${profileId}, ${sessionIdSearchKey}=${sessionIdSearchValue}`
         )
     }
   } else {
