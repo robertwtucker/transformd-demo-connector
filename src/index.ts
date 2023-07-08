@@ -127,6 +127,7 @@ export async function execute(context: Context): Promise<void> {
   // TODO: Process input data file using JSONPath expression provided via
   // 'sessionIdSearchValue' input param.
   //
+  const matchValue = ''
 
   // Call webhook to initiate a form session
   //
@@ -152,7 +153,7 @@ export async function execute(context: Context): Promise<void> {
   const profileResponse = await apiClient.searchProfile(
     context.parameters.profileId as string,
     context.parameters.sessionIdSearchKey as string,
-    context.parameters.sessionIdSearchValue as string
+    matchValue
   )
 
   // Check search response
@@ -161,13 +162,13 @@ export async function execute(context: Context): Promise<void> {
     switch (profileResponse.data.count) {
       case 0:
         throw new Error(
-          `No profile found with search params: id=${profileId}, ${sessionIdSearchKey}=${sessionIdSearchValue}`
+          `No profile found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionIdSearchKey}=${matchValue}`
         )
       case 1:
         break // Match found, Continue
       default:
         throw new Error(
-          `Multiple profiles found with search params: id=${profileId}, ${sessionIdSearchKey}=${sessionIdSearchValue}`
+          `Multiple profiles found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionIdSearchKey}=${matchValue}`
         )
     }
   } else {
