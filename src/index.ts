@@ -109,12 +109,14 @@ export function getDescription(): ScriptDescription {
 
 export async function execute(context: Context): Promise<void> {
   // Open input data fiie
-  console.log(`Reading from ${context.parameters.inputDataFile}`)
-  const inputFile = await context.openReadText(
+  //
+  console.log(`Reading data from ${context.parameters.inputDataFile}`)
+  const input = await context.openReadText(
     context.parameters.inputDataFile as string
   )
 
   // Delete output data file, if it exists
+  //
   try {
     console.log(`Deleting ${context.parameters.outputDataFile}`)
     await context.getFile(context.parameters.outputDataFile as string).delete()
@@ -122,42 +124,39 @@ export async function execute(context: Context): Promise<void> {
     // Ignore error if file does not exist
   }
 
-  // Get the rest of the input parameters
-  const outputDataPath = context.parameters.outputDataPath as string
-  const webhookUrl = context.parameters.webhookUrl as string
-  const webhookUsername = context.parameters.webhookUsername as string
-  const webhookPassword = context.parameters.webhookPassword as string
-  const apiUrl = context.parameters.apiUrl as string
-  const apiKey = context.parameters.apiKey as string
-  const profileId = context.parameters.profileId as string
-  const sessionIdSearchKey = context.parameters.sessionIdSearchKey as string
-  const sessionIdSearchValue = context.parameters.sessionIdSearchValue as string
+  // TODO: Process input data file using JSONPath expression provided via
+  // 'sessionIdSearchValue' input param.
+  //
 
-  // Process input data File
-
-  // Call webhook and process response
+  // Call webhook to initiate a form session
+  //
   const webhookClient = new TransformdDemoWebhookClient(
-    webhookUrl,
-    webhookUsername,
-    webhookPassword
+    context.parameters.webhookUrl as string,
+    context.parameters.webhookUsername as string,
+    context.parameters.webhookPassword as string
   )
-
   const webhookResponse = await webhookClient.send({ foo: 'bar' })
-  if (webhookResponse.status != 'created') {
-    // TODO: Check to see what status' other than created exist
+  if (webhookResponse.status !== 'created') {
+    // TODO: Check to see if status !== 'created' is an error
     // throw new Error(`Webhook response status: ${webhookResponse.status}`)
     console.log(`Webhook response status: ${webhookResponse.status}`)
   }
 
-  // Call profile lookup api with search params and process response
-  const apiClient = new TransformdApiClient(apiUrl, apiKey)
+  // Call profile search API with search params
+  //
+  const apiClient = new TransformdApiClient(
+    context.parameters.apiUrl as string,
+    context.parameters.apiKey as string
+  )
   await apiClient.getAuthToken()
   const profileResponse = await apiClient.searchProfile(
-    profileId,
-    sessionIdSearchKey,
-    sessionIdSearchValue
+    context.parameters.profileId as string,
+    context.parameters.sessionIdSearchKey as string,
+    context.parameters.sessionIdSearchValue as string
   )
 
+  // Check search response
+  //
   if (profileResponse.success) {
     switch (profileResponse.data.count) {
       case 0:
@@ -165,24 +164,30 @@ export async function execute(context: Context): Promise<void> {
           `No profile found with search params: id=${profileId}, ${sessionIdSearchKey}=${sessionIdSearchValue}`
         )
       case 1:
-        break // Continue
+        break // Match found, Continue
       default:
         throw new Error(
           `Multiple profiles found with search params: id=${profileId}, ${sessionIdSearchKey}=${sessionIdSearchValue}`
         )
     }
   } else {
-    throw new Error(`Profile response status: ${profileResponse.success}`)
+    throw new Error(`Profile response error: ${profileResponse}`)
   }
 
-  // Update input data file content with URL
+  // TODO: Update the input data file with the form session URL. Upsert the
+  // element specified by the JSONPath expression in the 'outputDataPath'
+  // input param.
+  //
   const formSessionUrl = profileResponse.data.records[0].values.url
   console.log(`Form Session URL: ${formSessionUrl}`)
 
-  // Open output data file
-  const outputFile = await context.openWriteText(
+  const outputDataPath = context.parameters.outputDataPath as string
+  console.log(`Output JSONPath: ${outputDataPath}`)
+
+  // TODO: Write modified content to output data file
+  //
+  console.log(`Writing data to ${context.parameters.outputDataFile}`)
+  const output = await context.openWriteText(
     context.parameters.outputDataFile as string
   )
-
-  // Write output stream to data file
 }
