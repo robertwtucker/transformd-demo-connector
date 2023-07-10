@@ -1,31 +1,8 @@
 {
   "compilerOptions": {
-    "allowJs": false,
-    "allowSyntheticDefaultImports": true,
-    "checkJs": false,
-    "declaration": false,
-    "downlevelIteration": true,
-    "experimentalDecorators": true,
-    "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
-    "lib": [
-      "es2021"
-    ],
-    "module": "commonjs",
-    "noEmitHelpers": true,
-    "reactNamespace": "b",
-    "removeComments": false,
-    "skipLibCheck": false,
-    "skipDefaultLibCheck": true,
-    "sourceMap": true,
-    "strict": true,
     "target": "es2019",
-    "typeRoots": [
-      "node_modules/@quadient"
-    ],
-    "resolveJsonModule": true
-  },
-  "include": [
-    "**/*"
-  ]
+    "lib": ["es2021"],
+    "moduleResolution": "node",
+    "typeRoots": ["node_modules/@quadient"]
+  }
 }
