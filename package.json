@@ -10,11 +10,9 @@
   },
   "devDependencies": {
     "@quadient/evolve-scripting-api": "^0.0.39",
-    "typescript": "^5.1.6"
+    "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@quadient/evolve-data-transformations": "^0.0.10",
-    "@types/jsonpath": "^0.2.0",
-    "jsonpath": "^1.1.1"
+    "@quadient/evolve-data-transformations": "^0.0.10"
   }
 }
