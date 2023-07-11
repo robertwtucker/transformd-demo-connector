@@ -1,6 +1,6 @@
 {
   "name": "transformd-demo-connector",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A demo Evolve component for integrating with Transformd",
   "homepage": "https://github.com/quadient/transformd-demo-connector/README.md",
   "license": "MIT",
