@@ -21,24 +21,24 @@ export function getDescription(): ScriptDescription {
     input: [
       {
         id: 'inputDataFile',
-        displayName: 'Input Data File',
-        description: 'JSON-formatted input data file to read from.',
+        displayName: 'Input data file',
+        description: 'Data file to read input from (JSON format).',
         type: 'InputResource',
         required: true,
       },
       {
         id: 'outputDataFile',
-        displayName: 'Output Data File',
+        displayName: 'Output data file',
         description:
-          'Output data file to write the URL-enhanced data to (will be JSON format).',
+          'Output file to write the URL-enhanced data to (will be JSON format).',
         type: 'OutputResource',
         required: true,
       },
       {
         id: 'outputDataPath',
-        displayName: 'URL Data JSONPath Expression',
+        displayName: 'URL data JSONPath expression',
         description:
-          'A JSONPath expression indicating the data element(s) to update with the Form Session URL. If the path provided does not exist, it will be created. If the path provided cannot be resolved or the expression is invalid, the job will fail.',
+          'A JSONPath expression indicating the data element(s) to update with the form session URL. If the path provided does not exist, it will be created. If the path provided cannot be resolved or the expression is invalid, the job will fail.',
         defaultValue: '$.Clients[*].variableName',
         type: 'String',
         required: true,
@@ -47,24 +47,24 @@ export function getDescription(): ScriptDescription {
         id: 'webhookUrl',
         displayName: 'Webhook URL',
         description:
-          'The URL of the Transformd webhook that initiates the Form Session.',
+          'The URL of the Transformd webhook that initiates the form session.',
         defaultValue: 'https://api.transformd.com/hooks/',
         type: 'String',
         required: true,
       },
       {
         id: 'webhookUsername',
-        displayName: 'Webhook Username',
+        displayName: 'Webhook username',
         description:
-          'The username to use when initiating the Form Session via the Transformd webhook. If blank, no authentication header (HTTP Basic) will be sent.',
+          'The username to use when initiating the form session via the Transformd webhook. If blank, an HTTP Basic authentication header will not be sent.',
         type: 'String',
         required: false,
       },
       {
         id: 'webhookPassword',
-        displayName: 'Webhook Password',
+        displayName: 'Webhook password',
         description:
-          'The password to use when initiating the Form Session via the Transformd webhook. If blank, no authentication header (HTTP Basic) will be sent.',
+          'The password to use when initiating the Form Session via the Transformd webhook. If blank, an HTTP Basic authentication header will not be sent.',
         type: 'Secret',
         required: false,
       },
@@ -78,34 +78,34 @@ export function getDescription(): ScriptDescription {
       },
       {
         id: 'profileId',
-        displayName: 'Profile (Dataset) ID',
+        displayName: 'Profile (dataset) ID',
         description:
-          'The Transformd Profile (Dataset) ID associated with the Form to be used.',
+          'The Transformd profile (dataset) ID associated with the form to be used.',
         type: 'String',
         defaultValue: '303',
         required: true,
       },
       {
         id: 'sessionSearchKey',
-        displayName: 'Form Session Search Key Name',
+        displayName: 'Form session search key name',
         description:
-          'The Transformd fields key name to search for the unique Session ID.',
+          'The Transformd fields object key name to search for the unique session identifier.',
         defaultValue: 'claimNumber',
         type: 'String',
         required: true,
       },
       {
         id: 'sessionSearchValuesFile',
-        displayName: 'Form Session Search Values File',
+        displayName: 'Form session search values file',
         description:
-          'A JSON-formatted input file created by by the Transformd Demo Processor. These values represent the unique identifier for the Form Session to be created/retrieved.',
+          'A JSON-formatted input file created by by the Transformd Demo Processor. These values represent the unique identifier for the form session to be created/retrieved.',
         type: 'InputResource',
         required: true,
       },
       {
         id: 'sessionUrlKey',
-        displayName: 'Form Session URL Key Name',
-        description: 'The key name associated with the Form Session URL.',
+        displayName: 'Form session URL key name',
+        description: 'The key name associated with the form session URL key-value pair in the Transformd API response.',
         defaultValue: '64a54c3631e6326de51ca7a2',
         type: 'String',
         required: true,
@@ -116,12 +116,12 @@ export function getDescription(): ScriptDescription {
 }
 
 export async function execute(context: Context): Promise<void> {
-  // Delete output data file (if it exists)
+  // Delete the output data file (if it exists)
   //
   try {
     await context.getFile(context.parameters.outputDataFile as string).delete()
   } catch (err) {
-    // Ignore error if file does not exist
+    // Ignore error (i.e. file does not exist)
   }
 
   // Read input data
@@ -130,9 +130,6 @@ export async function execute(context: Context): Promise<void> {
     context.parameters.inputDataFile as string
   )
 
-  // Process input data file using the saved search values file provided via
-  // the 'sessionSearchValuesFile' input param.
-  //
   let inputJson = {}
   try {
     inputJson = JSON.parse(inputData)
@@ -140,7 +137,9 @@ export async function execute(context: Context): Promise<void> {
     throw new Error('Failed to parse input data as JSON.')
   }
 
-  // Read search value input data
+  // Retreive the saved search values from the file provided via the
+  // 'sessionSearchValuesFile' input param.
+  //
   console.log(
     `Reading search value input file: ${context.parameters.sessionSearchValuesFile}`
   )
@@ -152,15 +151,15 @@ export async function execute(context: Context): Promise<void> {
     throw new Error('Failed to retrieve any search values from the data file.')
   }
 
-  // TODO: Comment/Uncomment to skip/perform API testing
-  /**/
-
+  // Transformd API procssing (performed for each record in the input file)
+  //
   let formSessionUrls: string[] = []
-  for (let i=0; i<searchValues.length; i++) {
+  for (let i = 0; i < searchValues.length; i++) {
     const searchValue = searchValues[i]
     console.log(`Unique search value: ${searchValue}`)
 
-    // Call webhook to initiate a form session
+    // Call webhook to initiate a form session with the input data record as
+    // the payload of the request.
     //
     const webhookClient = new TransformdDemoWebhookClient(
       context.parameters.webhookUrl as string,
@@ -174,7 +173,8 @@ export async function execute(context: Context): Promise<void> {
       console.log(`Webhook response status: ${webhookResponse.status}`)
     }
 
-    // Call profile search API with search params
+    // Call profile search API with the record's unique search value to get
+    // back a URL for the form session that was initiated.
     //
     const apiClient = new TransformdApiClient(
       context.parameters.apiUrl as string,
@@ -187,7 +187,7 @@ export async function execute(context: Context): Promise<void> {
       searchValue
     )
 
-    // Check search response
+    // Check the search response
     //
     if (profileResponse.success) {
       switch (profileResponse.data.count) {
@@ -196,7 +196,7 @@ export async function execute(context: Context): Promise<void> {
             `No profile found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionSearchKey}=${searchValue}`
           )
         case 1:
-          break // Match found, Continue
+          break // Match found, save URL and continue
         default:
           throw new Error(
             `Multiple profiles found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionSearchKey}=${searchValue}`
@@ -206,26 +206,13 @@ export async function execute(context: Context): Promise<void> {
       throw new Error(`Profile response error: ${profileResponse}`)
     }
 
-    // Update the input data file with the Form Session URL. Upsert the
-    // element specified by the JSONPath expression in the param 'outputDataPath'.
-    // Write the modified JSON content to the output file provided by the param
-    // 'outputDataFile'.
-    //
     formSessionUrls.push(profileResponse.data.records[0].values.url)
-    console.log(`Form Session URL: ${formSessionUrls[i]}`)
   }
 
-  /**/
-
-  // TODO: Remove after testing
-  // let formSessionUrls: string[] = []
-  // for (let i = 0; i < searchValues.length; i++) {
-  //   formSessionUrls.push(
-  //     'https://demo.transformd.com/quadient/?id=e1fe3d016684bdb908ad839558a2736ce7281ae0&brand=Emerald%20Travel'
-  //   )
-  // }
-
-  // Parse the JSONPath output expression into parent and child elements
+  // Using the input data file, upsert the element specified by the JSONPath
+  // expression in the param 'outputDataPath' with the form session URL
+  // returned by the API. Write the modified JSON content to the output file
+  // provided by the 'outputDataFile' param.
   //
   const outputDataPath = context.parameters.outputDataPath as string
   const pathElements = outputDataPath.split('.')
@@ -244,7 +231,7 @@ export async function execute(context: Context): Promise<void> {
     },
   })
 
-  // Open input and output files for text streaming
+  // Open the input and output files for streaming
   //
   const inputStream = await context.openReadText(
     context.parameters.inputDataFile as string
@@ -253,7 +240,8 @@ export async function execute(context: Context): Promise<void> {
     context.parameters.outputDataFile as string
   )
 
-  // Apply the update transform and write the output file
+  // Apply the update transform to the input data and write the enriched
+  // data to the output file.
   //
   console.log(
     `Writing Form Session URL values (${formSessionUrls.length}) to file: ${context.parameters.outputDataFile}`
@@ -271,12 +259,18 @@ export async function execute(context: Context): Promise<void> {
 /**
  * Retrieves the search (data) value(s) by reading a JSON-formatted input file
  * as specified by the 'sessionSearchValuesFile' input param. This file is
- * created in a previous step by the Transformd Demo Processor.
+ * usually created in a previous step by the Transformd Demo Processor.
  * @param {string} input contents of the JSON file read for the stored search values
  * @returns {string[]} array of resolved search value(s)
  */
 function getSearchValues(input: string): string[] {
   const searchValues = JSON.parse(input).values
-  console.log(`Read ${searchValues.length} search values from the values file: ${searchValues.join(', ')}`)
+  if (searchValues) {
+    console.log(
+      `Read ${
+        searchValues.length
+      } search values from the values file: ${searchValues.join(', ')}`
+    )
+  }
   return searchValues
 }
