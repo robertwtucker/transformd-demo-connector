@@ -44,36 +44,18 @@ export function getDescription(): ScriptDescription {
         required: true,
       },
       {
-        id: 'webhookUrl',
-        displayName: 'Webhook URL',
+        id: 'webhookConnector',
+        displayName: 'Transformd webhook connector',
         description:
-          'The URL of the Transformd webhook that initiates the form session.',
-        defaultValue: 'https://api.transformd.com/hooks/',
-        type: 'String',
+          'The web endpoint connector configured with the URL for the Transformd webhook.',
+        type: 'Connector',
         required: true,
       },
       {
-        id: 'webhookUsername',
-        displayName: 'Webhook username',
-        description:
-          'The username to use when initiating the form session via the Transformd webhook. If blank, an HTTP Basic authentication header will not be sent.',
-        type: 'String',
-        required: false,
-      },
-      {
-        id: 'webhookPassword',
-        displayName: 'Webhook password',
-        description:
-          'The password to use when initiating the Form Session via the Transformd webhook. If blank, an HTTP Basic authentication header will not be sent.',
-        type: 'Secret',
-        required: false,
-      },
-      {
-        id: 'apiUrl',
-        displayName: 'Transformd API URL',
-        description: 'The base URL for the Transformd API.',
-        defaultValue: 'https://api.transformd.com',
-        type: 'String',
+        id: 'apiConnector',
+        displayName: 'Transformd API connector',
+        description: 'The web endpoint connector configured with the base URL for the Transformd API.',
+        type: 'Connector',
         required: true,
       },
       {
@@ -161,12 +143,10 @@ export async function execute(context: Context): Promise<void> {
     // Call webhook to initiate a form session with the input data record as
     // the payload of the request.
     //
-    const webhookClient = new TransformdDemoWebhookClient(
-      context.parameters.webhookUrl as string,
-      context.parameters.webhookUsername as string,
-      context.parameters.webhookPassword as string
+    const webhookConnector = new TransformdDemoWebhookClient(
+      context.parameters.webhookConnector as string
     )
-    const webhookResponse = await webhookClient.send(inputJson)
+    const webhookResponse = await webhookConnector.send(inputJson)
     if (webhookResponse.status !== 'created') {
       // TODO: Check to see if status !== 'created' is an error
       // throw new Error(`Webhook response status: ${webhookResponse.status}`)
@@ -176,12 +156,11 @@ export async function execute(context: Context): Promise<void> {
     // Call profile search API with the record's unique search value to get
     // back a URL for the form session that was initiated.
     //
-    const apiClient = new TransformdApiClient(
-      context.parameters.apiUrl as string,
-      context.parameters.apiKey as string
+    const apiConnector = new TransformdApiClient(
+      context.parameters.apiConnector as string
     )
-    await apiClient.getAuthToken()
-    const profileResponse = await apiClient.searchProfile(
+    await apiConnector.getAuthToken()
+    const profileResponse = await apiConnector.searchProfile(
       context.parameters.profileId as string,
       context.parameters.sessionSearchKey as string,
       searchValue
