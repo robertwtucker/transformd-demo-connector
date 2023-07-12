@@ -7,13 +7,16 @@ import { TransformdApiAuthTokenResponse } from './transformdApiAuthTokenResponse
 import { TransformdApiProfileSearchResponse } from './transformdApiSearchProfileResponse'
 
 export class TransformdApiClient {
-  private readonly apiUrl: string
-  private readonly apiKey: string
+  private readonly connector: string
   private token: string
 
-  constructor(apiUrl: string, apiKey: string, token = '') {
-    this.apiUrl = apiUrl
-    this.apiKey = apiKey
+  /**
+   * Instantiates a TransformdApiClient using the URL represented by the
+   * connector provided.
+   * @param {string} connector The name of the connector to use
+   */
+  constructor(connector: string, token = '') {
+    this.connector = connector
     this.token = token
   }
 
@@ -26,14 +29,13 @@ export class TransformdApiClient {
   async getAuthToken(): Promise<TransformdApiAuthTokenResponse> {
     const headers = new Headers()
     headers.append('Accept', 'application/json')
-    headers.append('Authorization', `Bearer ${this.apiKey}`)
     headers.append('Content-Type', 'application/x-www-form-urlencoded')
 
     const urlencoded = new URLSearchParams()
     urlencoded.append('timestamp', Date.now().toString())
     urlencoded.append('nonce', createGuid())
 
-    const response = await fetch(`${this.apiUrl}/v2/auth/token`, {
+    const response = await fetch(`${this.connector}/v2/auth/token`, {
       method: 'POST',
       headers: headers,
       body: urlencoded.toString(),
@@ -61,14 +63,13 @@ export class TransformdApiClient {
   ): Promise<TransformdApiProfileSearchResponse> {
     const headers = new Headers()
     headers.append('Accept', 'application/json')
-    headers.append('Authorization', `Bearer ${this.apiKey}`)
     headers.append('Content-Type', 'application/json')
     headers.append('Token', this.token)
 
     const body = JSON.parse(`{fields:{${searchKey}:${searchValue}}}`)
 
     const response = await fetch(
-      `${this.apiUrl}/v2/profile/search?id=${profileId}&scope=1`,
+      `${this.connector}/v2/profile/search?id=${profileId}&scope=1`,
       {
         method: 'POST',
         headers: headers,
