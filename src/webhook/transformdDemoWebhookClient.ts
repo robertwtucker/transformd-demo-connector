@@ -6,14 +6,15 @@
 import { TransformdDemoWebhookResponse } from './transformdDemoWebhookResponse'
 
 export class TransformdDemoWebhookClient {
-  private readonly url: string
-  private readonly username: string
-  private readonly password: string
+  private readonly connector: string
 
-  constructor(url: string, username = '', password = '') {
-    this.url = url
-    this.username = username
-    this.password = password
+  /**
+   * Instantiates a TransformdDemoWebhookClient using the URL represented
+   * by the connector provided.
+   * @param {string} connector The name of the connector to use
+   */
+  constructor(connector: string) {
+    this.connector = connector
   }
 
   /**
@@ -26,17 +27,7 @@ export class TransformdDemoWebhookClient {
     headers.append('Content-Type', 'application/json')
     headers.append('Accept', 'application/json')
 
-    if (
-      this.username.trim().length === 0 &&
-      this.password.trim().length === 0
-    ) {
-      headers.append(
-        'Authorization',
-        `Basic ${btoa(`${this.username}:${this.password}`)}`
-      )
-    }
-
-    const response = await fetch(this.url, {
+    const response = await fetch(this.connector, {
       method: 'POST',
       headers: headers,
       body: JSON.stringify(payload),
