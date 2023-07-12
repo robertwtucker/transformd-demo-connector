@@ -54,8 +54,14 @@ of this document), you can automate the process in the terminal:
 $ npm run script-upload
 ```
 
-To create a pipeline, select the _Processing Pipelines_ section under the
-_Design_ tab. Click the _New_ button to create a pipeline. Click the `{js}`
+Still in the _Content Manager_ tab, select the _Connectors_ section and click
+the `+`&nbsp;_New_ button. A completed connector definition can be found below. Be
+sure to publish the new connector before creating a pipeline that will use it.
+
+![Create new connector](doc/connector-props.png)
+
+To create a pipeline, select the _Processing Pipelines_ section under th
+_Design_ tab. Click the `+`&nbsp;_New_ button to create a pipeline. Click the `{js}`
 (_Custom Modules_) button on the left panel and drag the _Transformd Connector_
 script over to the pipeline. It should follow a
 [Transformd Preprocessor](https://github.com/robertwtucker/transformd-demo-preprocessor)
