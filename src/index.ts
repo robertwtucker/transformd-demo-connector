@@ -54,7 +54,8 @@ export function getDescription(): ScriptDescription {
       {
         id: 'apiConnector',
         displayName: 'Transformd API connector',
-        description: 'The web endpoint connector configured with the base URL for the Transformd API.',
+        description:
+          'The web endpoint connector configured with the base URL for the Transformd API.',
         type: 'Connector',
         required: true,
       },
@@ -87,7 +88,8 @@ export function getDescription(): ScriptDescription {
       {
         id: 'sessionUrlKey',
         displayName: 'Form session URL key name',
-        description: 'The key name associated with the form session URL key-value pair in the Transformd API response.',
+        description:
+          'The key name associated with the form session URL key-value pair in the Transformd API response.',
         defaultValue: '64a54c3631e6326de51ca7a2',
         type: 'String',
         required: true,
@@ -135,7 +137,7 @@ export async function execute(context: Context): Promise<void> {
 
   // Transformd API procssing (performed for each record in the input file)
   //
-  let formSessionUrls: string[] = []
+  const formSessionUrls: string[] = []
   for (let i = 0; i < searchValues.length; i++) {
     const searchValue = searchValues[i]
     console.log(`Unique search value: ${searchValue}`)
