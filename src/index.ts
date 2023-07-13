@@ -121,7 +121,7 @@ export async function execute(context: Context): Promise<void> {
     throw new Error('Failed to parse input data as JSON.')
   }
 
-  // Retreive the saved search values from the file provided via the
+  // Retrieve the saved search values from the file provided via the
   // 'sessionSearchValuesFile' input param.
   //
   console.log(
@@ -135,7 +135,7 @@ export async function execute(context: Context): Promise<void> {
     throw new Error('Failed to retrieve any search values from the data file.')
   }
 
-  // Transformd API procssing (performed for each record in the input file)
+  // Transformd API processing (performed for each record in the input file)
   //
   const formSessionUrls: string[] = []
   for (let i = 0; i < searchValues.length; i++) {
