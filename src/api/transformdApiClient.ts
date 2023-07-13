@@ -32,7 +32,10 @@ export class TransformdApiClient {
     headers.append('Content-Type', 'application/x-www-form-urlencoded')
 
     const urlencoded = new URLSearchParams()
-    urlencoded.append('timestamp', Date.now().toString())
+    urlencoded.append(
+      'timestamp',
+      Math.floor(new Date().getTime() / 1000).toString()
+    )
     urlencoded.append('nonce', createGuid())
 
     const response = await fetch(`${this.connector}/v2/auth/token`, {
@@ -41,11 +44,16 @@ export class TransformdApiClient {
       body: urlencoded.toString(),
     })
 
+    const json = await response.json()
     if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}-${response.text()}`)
+      throw new Error(
+        `Non-OK API response: ${response.status} ${
+          response.statusText
+        }:${JSON.stringify(json)}`
+      )
     }
 
-    return response.json()
+    return json
   }
 
   /**
@@ -77,10 +85,15 @@ export class TransformdApiClient {
       }
     )
 
+    const json = await response.json()
     if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}-${response.text()}`)
+      throw new Error(
+        `Non-OK API response: ${response.status} ${
+          response.statusText
+        }:${JSON.stringify(json)}`
+      )
     }
 
-    return response.json()
+    return json
   }
 }
