@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-name: "@quadient/evolve-scripting-api"
+      - dependency-name: "@quadient/evolve-data-transformations"
