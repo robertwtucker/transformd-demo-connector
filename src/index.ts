@@ -85,15 +85,6 @@ export function getDescription(): ScriptDescription {
         type: 'InputResource',
         required: true,
       },
-      {
-        id: 'sessionUrlKey',
-        displayName: 'Form session URL key name',
-        description:
-          'The key name associated with the form session URL key-value pair in the Transformd API response.',
-        defaultValue: '64a54c3631e6326de51ca7a2',
-        type: 'String',
-        required: true,
-      },
     ],
     output: [],
   }
@@ -137,17 +128,22 @@ export async function execute(context: Context): Promise<void> {
 
   // Transformd API processing (performed for each record in the input file)
   //
+  const webhookConnector = new TransformdDemoWebhookClient(
+    context.parameters.webhookConnector as string
+  )
+  const apiConnector = new TransformdApiClient(
+    context.parameters.apiConnector as string
+  )
   const formSessionUrls: string[] = []
+
   for (let i = 0; i < searchValues.length; i++) {
     const searchValue = searchValues[i]
-    console.log(`Unique search value: ${searchValue}`)
+    console.log(`Processing session for search value: ${searchValue}`)
 
     // Call webhook to initiate a form session with the input data record as
     // the payload of the request.
     //
-    const webhookConnector = new TransformdDemoWebhookClient(
-      context.parameters.webhookConnector as string
-    )
+    console.log('Calling webhook to initiate a form session...')
     const webhookResponse = await webhookConnector.send(inputJson)
     if (webhookResponse.status !== 'created') {
       // TODO: Check to see if status !== 'created' is an error
@@ -158,10 +154,11 @@ export async function execute(context: Context): Promise<void> {
     // Call profile search API with the record's unique search value to get
     // back a URL for the form session that was initiated.
     //
-    const apiConnector = new TransformdApiClient(
-      context.parameters.apiConnector as string
-    )
-    await apiConnector.getAuthToken()
+    if (!apiConnector.isAuthenticated()) {
+      console.log('Getting authentication token for the API...')
+      await apiConnector.getAuthToken()
+    }
+    console.log('Calling profile search API to get form session...')
     const profileResponse = await apiConnector.searchProfile(
       context.parameters.profileId as string,
       context.parameters.sessionSearchKey as string,
@@ -170,7 +167,9 @@ export async function execute(context: Context): Promise<void> {
 
     // Check the search response
     //
+    console.debug(`Profile search response status: ${profileResponse.success}`)
     if (profileResponse.success) {
+      console.debug(`Profile search data count: ${profileResponse.data.count}`)
       switch (profileResponse.data.count) {
         case 0:
           throw new Error(
@@ -187,7 +186,10 @@ export async function execute(context: Context): Promise<void> {
       throw new Error(`Profile response error: ${profileResponse}`)
     }
 
-    formSessionUrls.push(profileResponse.data.records[0].values.url)
+    const formSessionUrl =
+      profileResponse.data.records[0].values['64a54c3631e6326de51ca7a2']
+    console.debug(`Got form session URL: ${formSessionUrl}`)
+    formSessionUrls.push(formSessionUrl)
   }
 
   // Using the input data file, upsert the element specified by the JSONPath
@@ -225,7 +227,7 @@ export async function execute(context: Context): Promise<void> {
   // data to the output file.
   //
   console.log(
-    `Writing Form Session URL values (${formSessionUrls.length}) to file: ${context.parameters.outputDataFile}`
+    `Writing form session URL values (${formSessionUrls.length}) to file: ${context.parameters.outputDataFile}`
   )
   await inputStream
     .pipeThrough(new StringToJsonTransformStream())
@@ -246,11 +248,11 @@ export async function execute(context: Context): Promise<void> {
  */
 function getSearchValues(input: string): string[] {
   const searchValues = JSON.parse(input).values
-  if (searchValues) {
+  if (searchValues && searchValues.length > 0) {
     console.log(
-      `Read ${
-        searchValues.length
-      } search values from the values file: ${searchValues.join(', ')}`
+      `Read ${searchValues.length} ${
+        searchValues.length > 1 ? 'entries' : 'entry'
+      } from the search values file.`
     )
   }
   return searchValues

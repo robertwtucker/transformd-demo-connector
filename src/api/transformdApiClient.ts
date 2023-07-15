@@ -9,15 +9,17 @@ import { TransformdApiProfileSearchResponse } from './transformdApiSearchProfile
 export class TransformdApiClient {
   private readonly connector: string
   private token: string
+  private tokenExpires: number
 
   /**
    * Instantiates a TransformdApiClient using the URL represented by the
    * connector provided.
    * @param {string} connector The name of the connector to use
    */
-  constructor(connector: string, token = '') {
+  constructor(connector: string) {
     this.connector = connector
-    this.token = token
+    this.token = ''
+    this.tokenExpires = 0
   }
 
   /**
@@ -53,6 +55,20 @@ export class TransformdApiClient {
       )
     }
 
+    console.debug(`API:/auth/token response: ${JSON.stringify(json)}`)
+
+    if (json && json.success) {
+      this.token = json.data.token
+      this.tokenExpires = json.data.expires
+    } else {
+      throw new Error(
+        `Invalid API response body (JSON): ${JSON.stringify(json)}`
+      )
+    }
+
+    console.debug(`API token: '${this.token}`)
+    console.debug(`API token expires: '${this.tokenExpires}`)
+
     return json
   }
 
@@ -61,7 +77,7 @@ export class TransformdApiClient {
    * to find the URL for the Form Session initiated by the Webhook.
    * @param {string} profileId The Profile ID to use
    * @param {string} searchKey Key value to use in the fields collection
-   * @param {string} searchValue A unique identifier to use as the search value.
+   * @param {string} searchValue Unique identifier to use as the search value
    * @returns {Promise<TransformdApiProfileSearchResponse>} Parsed object
    */
   async searchProfile(
@@ -74,14 +90,14 @@ export class TransformdApiClient {
     headers.append('Content-Type', 'application/json')
     headers.append('Token', this.token)
 
-    const body = JSON.parse(`{fields:{${searchKey}:${searchValue}}}`)
-
+    const body = `{"fields":{"${searchKey}":"${searchValue}"}}`
+    console.debug(`API request body: ${body}`)
     const response = await fetch(
       `${this.connector}/v2/profile/search?id=${profileId}&scope=1`,
       {
         method: 'POST',
         headers: headers,
-        body: JSON.stringify(body),
+        body: '{"fields":{"claimNumber":"*"}}', // TODO: Replace with actual body when fixed
       }
     )
 
@@ -94,6 +110,31 @@ export class TransformdApiClient {
       )
     }
 
+    console.debug(`API:/v2/profile/search returned ${json.data.count} records`)
+
+    if (json && json.success) {
+      // WORKAROUND: Transformd API currently returning everything _but_ the
+      // desired record. For now, find it and adjust the response manually.
+      let url = ''
+      json.data.records = [json.data.records[json.data.count - 1]]
+      json.data.count = 1
+      url = json.data.records[0].values['64a54c3631e6326de51ca7a2']
+      console.debug(`API:/v2/profile/search response: ${JSON.stringify(json)}`)
+      console.debug(`Form session URL: ${url.length > 0 ? url : 'not found!'}`)
+    } else {
+      throw new Error(
+        `Invalid API response body (JSON): ${JSON.stringify(json)}`
+      )
+    }
+
     return json
+  }
+
+  /**
+   * Checks if the client has a valid authentication token.
+   * @returns {boolean} True if the client has a valid token
+   */
+  isAuthenticated(): boolean {
+    return this.token.length > 0 && this.tokenExpires > new Date().getTime()
   }
 }
