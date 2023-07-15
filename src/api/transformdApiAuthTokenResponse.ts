@@ -5,10 +5,10 @@
 
 export interface TransformdApiAuthTokenResponse {
   success: boolean
-  data: Data
+  data: AuthTokenResponseData
 }
 
-export interface Data {
+export interface AuthTokenResponseData {
   token: string
   expires: number
 }
