@@ -1,7 +1,8 @@
 # Transformd Demo Connector
 
-![Version Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2Frobertwtucker%2Ftransformd-demo-connector%2Fraw%2Fmaster%2Fpackage.json&query=%24.version&label=Version)
-![License Badge](https://img.shields.io/github/license/robertwtucker/transformd-demo-connector)
+![version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Frobertwtucker%2Ftransformd-demo-connector%2Fmaster%2Fpackage.json&query=%24.version&label=version)
+![open issues](https://img.shields.io/github/issues-raw/robertwtucker/transformd-demo-connector)
+![license](https://img.shields.io/github/license/robertwtucker/transformd-demo-connector)
 
 ## Overview
 
