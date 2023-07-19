@@ -199,7 +199,7 @@ export async function execute(context: Context): Promise<void> {
     const webhookResponse = await webhookConnector.send(inputJson[i])
     if (webhookResponse.status === 'created') {
       console.log(
-        `Event '${webhookResponse.eventID}' created for session identifier '${searchValue}'.`
+        `Event '${webhookResponse.event_id}' created for session identifier '${searchValue}'.`
       )
     } else {
       // TODO: Check to see if status !== 'created' is an error

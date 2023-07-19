@@ -15,8 +15,8 @@ export interface ProfileSearchResponseData {
 
 export interface ProfileSearchResponseRecord {
   values: ProfileSearchResponseValues
-  groupID: number
-  lastUpdated: number
+  group_id: number
+  last_updated: number
   created: number
   id: string
 }
