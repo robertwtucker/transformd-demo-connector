@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Project changelog
+- Project changelog ([#24](https://github.com/robertwtucker/transformd-demo-connector/pull/24))
 
 ### Fixed
 
-- Incorrect key names in generated response mappings ([23](https://github.com/robertwtucker/transformd-demo-connector/pull/23))
+- Incorrect key names in generated response mappings ([#23](https://github.com/robertwtucker/transformd-demo-connector/pull/23))
 - Updated project links in the package file ([#22](https://github.com/robertwtucker/transformd-demo-connector/pull/22))
 
 ## [0.1.0] - 2023-07-18

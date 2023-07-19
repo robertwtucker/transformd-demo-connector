@@ -77,16 +77,19 @@ example is pictured below.
 
 ## History
 
-See [CHANGELOG.md](https://github.com/robertwtucker/transformd-demo-connector/CHANGELOG.md)
+See [CHANGELOG.md](https://github.com/robertwtucker/transformd-demo-connector/blob/master/CHANGELOG.md)
 for more information.
 
 ## Roadmap
 
-See the [open issues](https://github.com/robertwtucker/transformd-demo-connector/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/robertwtucker/transformd-demo-connector/issues)
+for a list of proposed features (and known issues).
 
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are sincerely appreciated.
+Contributions are what make the open source community such an amazing place
+to learn, inspire, and create. Any contributions you make are sincerely
+appreciated.
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
@@ -96,7 +99,8 @@ Contributions are what make the open source community such an amazing place to l
 
 ## License
 
-Copyright (c) 2023 Quadient Group AG and distributed under the MIT License. See `LICENSE` for more information.
+Copyright (c) 2023 Quadient Group AG and distributed under the MIT License.
+See `LICENSE` for more information.
 
 ## Contact
 
