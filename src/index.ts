@@ -6,8 +6,10 @@
 import {
   JsonEvent,
   JsonEventType,
+  JsonMaterializingParser,
   JsonMaterializingTransformStream,
   JsonToStringTransformStream,
+  StringReadableStream,
   StringToJsonTransformStream,
 } from '@quadient/evolve-data-transformations'
 import { TransformdApiClient } from './api/transformdApiClient'
@@ -39,7 +41,7 @@ export function getDescription(): ScriptDescription {
         displayName: 'URL data JSONPath expression',
         description:
           'A JSONPath expression indicating the data element(s) to update with the form session URL. If the path provided does not exist, it will be created. If the path provided cannot be resolved or the expression is invalid, the job will fail.',
-        defaultValue: '$.Clients[*].variableName',
+        defaultValue: '$.Clients[*].TransformdURL',
         type: 'String',
         required: true,
       },
@@ -73,16 +75,26 @@ export function getDescription(): ScriptDescription {
         displayName: 'Form session search key name',
         description:
           'The Transformd fields object key name to search for the unique session identifier.',
-        defaultValue: 'claimNumber',
+        defaultValue: 'guid',
         type: 'String',
         required: true,
       },
       {
-        id: 'sessionSearchValuesFile',
-        displayName: 'Form session search values file',
+        id: 'sessionSearchPath',
+        displayName: 'Form session search value path',
         description:
-          'A JSON-formatted input file created by by the Transformd Demo Processor. These values represent the unique identifier for the form session to be created/retrieved.',
-        type: 'InputResource',
+          'A JSONPath expression for the input data element to use as a unique form session identifier.',
+        defaultValue: '$.Clients[*].guid',
+        type: 'String',
+        required: true,
+      },
+      {
+        id: 'sessionUrlKey',
+        displayName: 'Form session URL key name',
+        description:
+          'The key name associated with the form session URL key-value pair in the Transformd API response.',
+        defaultValue: '64a54c3631e6326de51ca7a2',
+        type: 'String',
         required: true,
       },
     ],
@@ -91,7 +103,7 @@ export function getDescription(): ScriptDescription {
 }
 
 export async function execute(context: Context): Promise<void> {
-  // Delete the output data file (if it exists)
+  // Delete the output data file (if it exists).
   //
   try {
     await context.getFile(context.parameters.outputDataFile as string).delete()
@@ -99,34 +111,63 @@ export async function execute(context: Context): Promise<void> {
     // Ignore error (i.e. file does not exist)
   }
 
-  // Read input data
+  // Validate the JSONPath expression that serves as the path to the unique
+  // form session identifier (becomes the search value).
+  //
+  const searchPathExpression = getJsonPathExpression(
+    context.parameters.sessionSearchPath as string
+  )
+  const searchParts = searchPathExpression.split('.')
+  const searchKey = searchParts?.pop() ?? ''
+  if (searchKey.length === 0) {
+    throw new Error(
+      `Invalid JSONPath expression for search path: '${searchPathExpression}'.`
+    )
+  }
+  const searchPath = searchParts!.join('.')
+
+  // Create the callback function that will be used to parse the input
+  // data file and store our search value(s).
+  //
+  const searchValues: string[] = []
+  const inputJson: object[] = []
+  const parserCallback = async (event: JsonEvent) => {
+    if (event.type === JsonEventType.ANY_VALUE) {
+      searchValues.push(event.data[searchKey])
+      inputJson.push(event.data)
+    }
+  }
+
+  // Read the input data file.
+  //
   console.log(`Reading input file: ${context.parameters.inputDataFile}`)
   const inputData = await context.read(
     context.parameters.inputDataFile as string
   )
 
-  let inputJson = {}
-  try {
-    inputJson = JSON.parse(inputData)
-  } catch (err) {
-    throw new Error('Failed to parse input data as JSON.')
-  }
-
-  // Retrieve the saved search values from the file provided via the
-  // 'sessionSearchValuesFile' input param.
+  // Parse the input data to resolve the search value JSONPath expression(s)
+  // to the JSON element's actual data value.
   //
-  console.log(
-    `Reading search value input file: ${context.parameters.sessionSearchValuesFile}`
-  )
-  const searchValueInputData = await context.read(
-    context.parameters.sessionSearchValuesFile as string
-  )
-  const searchValues = getSearchValues(searchValueInputData)
+  const materializedSearchPaths = [searchPath]
+  const parser = new JsonMaterializingParser(parserCallback, {
+    materializedPaths: materializedSearchPaths,
+  })
+  await parser.parse(inputData)
+  await parser.flush()
+
+  // Check the results of the parsing operation.
+  //
   if (searchValues.length === 0) {
-    throw new Error('Failed to retrieve any search values from the data file.')
+    throw new Error(
+      `No search values found for JSONPath expression: '${searchPathExpression}'.`
+    )
+  } else if (searchValues.length !== inputJson.length) {
+    throw new Error(
+      `The number of search values does not match the number of input JSON objects: ${searchValues.length} != ${inputJson.length}`
+    )
   }
 
-  // Transformd API processing (performed for each record in the input file)
+  // Transformd API processing section.
   //
   const webhookConnector = new TransformdDemoWebhookClient(
     context.parameters.webhookConnector as string
@@ -136,59 +177,87 @@ export async function execute(context: Context): Promise<void> {
   )
   const formSessionUrls: string[] = []
 
+  // Repeat process for each element in the search values array and/or record
+  // in the input file).
+  //
   for (let i = 0; i < searchValues.length; i++) {
     const searchValue = searchValues[i]
-    console.log(`Processing session for search value: ${searchValue}`)
 
     // Call webhook to initiate a form session with the input data record as
     // the payload of the request.
     //
     console.log('Calling webhook to initiate a form session...')
-    const webhookResponse = await webhookConnector.send(inputJson)
-    if (webhookResponse.status !== 'created') {
+    const webhookResponse = await webhookConnector.send(inputJson[i])
+    if (webhookResponse.status === 'created') {
+      console.log(
+        `Event '${webhookResponse.eventID}' created for session identifier '${searchValue}'.`
+      )
+    } else {
       // TODO: Check to see if status !== 'created' is an error
-      // throw new Error(`Webhook response status: ${webhookResponse.status}`)
-      console.log(`Webhook response status: ${webhookResponse.status}`)
+      console.warn(`Webhook response status: ${webhookResponse.status}`)
     }
 
-    // Call profile search API with the record's unique search value to get
-    // back a URL for the form session that was initiated.
+    // Call the profile search API with the record's unique search value to
+    // get back a URL for the form session that was initiated.
     //
     if (!apiConnector.isAuthenticated()) {
       console.log('Getting authentication token for the API...')
-      await apiConnector.getAuthToken()
+      const authResponse = await apiConnector.getAuthToken()
+      if (authResponse.success) {
+        console.log('Successfully authenticated with the Transformd API')
+      } else {
+        throw new Error('Failed to authenticate with the Transformd API')
+      }
     }
-    console.log('Calling profile search API to get form session...')
+
+    console.log('Calling the profile search API to get the form session URL...')
     const profileResponse = await apiConnector.searchProfile(
       context.parameters.profileId as string,
       context.parameters.sessionSearchKey as string,
       searchValue
     )
 
-    // Check the search response
+    // Check the search response.
     //
-    console.debug(`Profile search response status: ${profileResponse.success}`)
     if (profileResponse.success) {
-      console.debug(`Profile search data count: ${profileResponse.data.count}`)
       switch (profileResponse.data.count) {
         case 0:
-          throw new Error(
+          console.error(
             `No profile found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionSearchKey}=${searchValue}`
           )
+          // TODO: Uncomment after testing
+          // throw new Error(
+          //   `No profile found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionSearchKey}=${searchValue}`
+          // )
+          return
         case 1:
-          break // Match found, save URL and continue
+          break // Match found, continue to save form session URL
         default:
-          throw new Error(
+          console.error(
             `Multiple profiles found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionSearchKey}=${searchValue}`
           )
+          // TODO: Uncomment after testing
+          // throw new Error(
+          //   `Multiple profiles found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionSearchKey}=${searchValue}`
+          // )
+          return
       }
     } else {
-      throw new Error(`Profile response error: ${profileResponse}`)
+      console.error(
+        `Unexpected response from profile search API: ${JSON.stringify(
+          profileResponse
+        )}`
+      )
+      // TODO: Uncomment after testing
+      // throw new Error(
+      //   `Profile response error: ${JSON.stringify(profileResponse)}`
+      // )
+      return
     }
 
-    const formSessionUrl =
-      profileResponse.data.records[0].values['64a54c3631e6326de51ca7a2']
-    console.debug(`Got form session URL: ${formSessionUrl}`)
+    let formSessionUrl = ''
+    const sessionUrlKey = context.parameters.sessionUrlKey as string
+    formSessionUrl = profileResponse.data.records[0].values[`${sessionUrlKey}`]
     formSessionUrls.push(formSessionUrl)
   }
 
@@ -197,14 +266,22 @@ export async function execute(context: Context): Promise<void> {
   // returned by the API. Write the modified JSON content to the output file
   // provided by the 'outputDataFile' param.
   //
-  const outputDataPath = context.parameters.outputDataPath as string
-  const pathElements = outputDataPath.split('.')
-  const updateKey = pathElements.pop()
+  const updatePathExpression = getJsonPathExpression(
+    context.parameters.outputDataPath as string
+  )
+  const updateParts = updatePathExpression.split('.')
+  const updateKey = updateParts?.pop() ?? ''
+  if (updateKey.length === 0) {
+    throw new Error(
+      `Invalid JSONPath expression for update path: '${updatePathExpression}'.`
+    )
+  }
+  const updatePath = updateParts!.join('.')
   let urlIndex = 0
 
   // Create a materializing transformer to perform the update
   //
-  const materializedPaths = [pathElements.join('.')]
+  const materializedPaths = [updatePath]
   const updateTransformer = new TransformStream<JsonEvent, JsonEvent>({
     transform(event, controller) {
       if (event.type === JsonEventType.ANY_VALUE) {
@@ -214,11 +291,9 @@ export async function execute(context: Context): Promise<void> {
     },
   })
 
-  // Open the input and output files for streaming
+  // Open the input data and output files for streaming
   //
-  const inputStream = await context.openReadText(
-    context.parameters.inputDataFile as string
-  )
+  const inputStream = new StringReadableStream(inputData)
   const outputStream = await context.openWriteText(
     context.parameters.outputDataFile as string
   )
@@ -240,20 +315,12 @@ export async function execute(context: Context): Promise<void> {
 }
 
 /**
- * Retrieves the search (data) value(s) by reading a JSON-formatted input file
- * as specified by the 'sessionSearchValuesFile' input param. This file is
- * usually created in a previous step by the Transformd Demo Processor.
- * @param {string} input contents of the JSON file read for the stored search values
- * @returns {string[]} array of resolved search value(s)
+ * Helper function to strip the root symbol ('$') from the JSONPath
+ * expression provided (as required for materialization in the
+ * evolve-data-transformations package).
+ * @param {string} path JSONPath expression for the search value
+ * @returns {string} The expression sans root symbol
  */
-function getSearchValues(input: string): string[] {
-  const searchValues = JSON.parse(input).values
-  if (searchValues && searchValues.length > 0) {
-    console.log(
-      `Read ${searchValues.length} ${
-        searchValues.length > 1 ? 'entries' : 'entry'
-      } from the search values file.`
-    )
-  }
-  return searchValues
+function getJsonPathExpression(path: string): string {
+  return path.startsWith('$') ? path.substring(1) : path
 }
