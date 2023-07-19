@@ -4,7 +4,7 @@
  */
 
 export interface TransformdDemoWebhookResponse {
-  eventID: string
+  event_id: string
   status: string
   client: string
 }
