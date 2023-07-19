@@ -55,19 +55,10 @@ export class TransformdApiClient {
       )
     }
 
-    console.debug(`API:/auth/token response: ${JSON.stringify(json)}`)
-
     if (json && json.success) {
       this.token = json.data.token
       this.tokenExpires = json.data.expires
-    } else {
-      throw new Error(
-        `Invalid API response body (JSON): ${JSON.stringify(json)}`
-      )
     }
-
-    console.debug(`API token: '${this.token}`)
-    console.debug(`API token expires: '${this.tokenExpires}`)
 
     return json
   }
@@ -91,13 +82,13 @@ export class TransformdApiClient {
     headers.append('Token', this.token)
 
     const body = `{"fields":{"${searchKey}":"${searchValue}"}}`
-    console.debug(`API request body: ${body}`)
+    console.debug(`API:/v2/profile/search request body: ${body}`)
     const response = await fetch(
       `${this.connector}/v2/profile/search?id=${profileId}&scope=1`,
       {
         method: 'POST',
         headers: headers,
-        body: '{"fields":{"claimNumber":"*"}}', // TODO: Replace with actual body when fixed
+        body: body,
       }
     )
 
@@ -107,23 +98,6 @@ export class TransformdApiClient {
         `Non-OK API response: ${response.status} ${
           response.statusText
         }:${JSON.stringify(json)}`
-      )
-    }
-
-    console.debug(`API:/v2/profile/search returned ${json.data.count} records`)
-
-    if (json && json.success) {
-      // WORKAROUND: Transformd API currently returning everything _but_ the
-      // desired record. For now, find it and adjust the response manually.
-      let url = ''
-      json.data.records = [json.data.records[json.data.count - 1]]
-      json.data.count = 1
-      url = json.data.records[0].values['64a54c3631e6326de51ca7a2']
-      console.debug(`API:/v2/profile/search response: ${JSON.stringify(json)}`)
-      console.debug(`Form session URL: ${url.length > 0 ? url : 'not found!'}`)
-    } else {
-      throw new Error(
-        `Invalid API response body (JSON): ${JSON.stringify(json)}`
       )
     }
 
