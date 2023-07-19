@@ -1,8 +1,9 @@
 {
-  "type": "module",
   "name": "transformd-demo-connector",
   "version": "0.1.0",
   "description": "A demo Evolve component for integrating with Transformd",
+  "type": "module",
+  "private": true,
   "scripts": {
     "build": "bb b -m 0 -b 0",
     "script-upload": "swarm script upload",
@@ -10,15 +11,14 @@
   },
   "main": "src/index.ts",
   "license": "MIT",
-  "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/quadient/transformd-demo-connector.git"
+    "url": "git+https://github.com/robertwtucker/transformd-demo-connector.git"
   },
   "bugs": {
-    "url": "https://github.com/quadient/transformd-demo-connector/issues"
+    "url": "https://github.com/robertwtucker/transformd-demo-connector/issues"
   },
-  "homepage": "https://github.com/quadient/transformd-demo-connector/README.md",
+  "homepage": "https://github.com/robertwtucker/transformd-demo-connector/README.md",
   "devDependencies": {
     "@quadient/evolve-scripting-api": "^0.0.39",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
