@@ -75,6 +75,11 @@ example is pictured below.
 
 ![New Pipeline Screen](doc/connector-pipeline.png)
 
+## History
+
+See [CHANGELOG.md](https://github.com/robertwtucker/transformd-demo-connector/CHANGELOG.md)
+for more information.
+
 ## Roadmap
 
 See the [open issues](https://github.com/robertwtucker/transformd-demo-connector/issues) for a list of proposed features (and known issues).
