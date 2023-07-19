@@ -18,7 +18,7 @@
   "bugs": {
     "url": "https://github.com/robertwtucker/transformd-demo-connector/issues"
   },
-  "homepage": "https://github.com/robertwtucker/transformd-demo-connector/README.md",
+  "homepage": "https://github.com/robertwtucker/transformd-demo-connector/blob/master/README.md",
   "devDependencies": {
     "@quadient/evolve-scripting-api": "^0.0.39",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
