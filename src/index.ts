@@ -97,6 +97,15 @@ export function getDescription(): ScriptDescription {
         type: 'String',
         required: true,
       },
+      {
+        id: 'sequenceDelayMs',
+        displayName: 'Sequence delay (ms)',
+        description:
+          'The number of milliseconds to wait after the webhook has initiated the form session in order to allow the trigger sequence to complete.',
+        defaultValue: 2000,
+        type: 'Number',
+        required: true,
+      },
     ],
     output: [],
   }
@@ -196,6 +205,14 @@ export async function execute(context: Context): Promise<void> {
       // TODO: Check to see if status !== 'created' is an error
       console.warn(`Webhook response status: ${webhookResponse.status}`)
     }
+
+    // Insert a delay between calls to the webhook and the profile search
+    // API. This provides time for the sequence of tasks initiated by the
+    // webhook to finish.
+    //
+    await new Promise((resolve) =>
+      setTimeout(resolve, context.parameters.sequenceDelayMs as number)
+    )
 
     // Call the profile search API with the record's unique search value to
     // get back a URL for the form session that was initiated.
