@@ -44,16 +44,22 @@ npm run build
 Open the **Generate** service UI and select the _Scripting_ section under the
 _Content Manager_ tab. Click the _Upload New_ button to open the Upload New
 Script dialog. Fill out the _Name_ and _Category_ fields. For the _Script_
-field, browse to the `dist/a.js` file in the project directory.
+field, browse to the `dist/a.js` file in the project directory. Click the
+_Upload_ button to upload the script to the server.
 
 ![Upload New Script dialog](doc/upload-new-script.png)
 
-As an alternative, if `swarm` is installed and configured (beyond the scope
-of this document), you can automate the process in the terminal:
+As an alternative, if the [`swarm`](<(https://www.npmjs.com/package/@quadient/swarm)>)
+package is installed and configured (beyond the scope of this document), you
+can automate the process in the terminal:
 
 ```bash
 npm run script-upload
 ```
+
+Regardless of the upload method used, you must click the _Publish Draft_ button
+while highlighting the script you created. Otherwise, the script will not be
+available for use in pipelines.
 
 Still in the _Content Manager_ tab, select the _Connectors_ section and click
 the `+`&nbsp;_New_ button. A completed connector definition can be found below. Be
@@ -64,9 +70,8 @@ sure to publish the new connector before creating a pipeline that will use it.
 To create a pipeline, select the _Processing Pipelines_ section under th
 _Design_ tab. Click the `+`&nbsp;_New_ button to create a pipeline. Click the `{js}`
 (_Custom Modules_) button on the left panel and drag the _Transformd Connector_
-script over to the pipeline. It should follow a
-[Transformd Preprocessor](https://github.com/robertwtucker/transformd-demo-preprocessor)
-step. Complete the properties section as pictured below.
+script over to the pipeline. Complete the properties section as required. An
+example is pictured below.
 
 ![New Pipeline Screen](doc/connector-pipeline.png)
 
