@@ -6,6 +6,11 @@
 import { TransformdApiAuthTokenResponse } from './transformdApiAuthTokenResponse'
 import { TransformdApiProfileSearchResponse } from './transformdApiSearchProfileResponse'
 
+/**
+ * Front-ends calls to the Transformd API. First call to get an auth token
+ * will store the value and automatically attach it as a header to subsequent
+ * calls.
+ */
 export class TransformdApiClient {
   private readonly connector: string
   private token: string
@@ -14,7 +19,7 @@ export class TransformdApiClient {
   /**
    * Instantiates a TransformdApiClient using the URL represented by the
    * connector provided.
-   * @param {string} connector The name of the connector to use
+   * @param connector The name of the connector to use
    */
   constructor(connector: string) {
     this.connector = connector
@@ -26,7 +31,7 @@ export class TransformdApiClient {
    * Generates a new API token for the user and stores it in the client for
    * use in subsequent requests. The entire response body is returned as a
    * convenience.
-   * @returns {Promise<TransformdApiAuthTokenResponse>} Parsed object
+   * @returns Parsed object
    */
   async getAuthToken(): Promise<TransformdApiAuthTokenResponse> {
     const headers = new Headers()
@@ -66,10 +71,10 @@ export class TransformdApiClient {
   /**
    * Search the Profile Records (Dataset Legacy) using the criteria provided
    * to find the URL for the Form Session initiated by the Webhook.
-   * @param {string} profileId The Profile ID to use
-   * @param {string} searchKey Key value to use in the fields collection
-   * @param {string} searchValue Unique identifier to use as the search value
-   * @returns {Promise<TransformdApiProfileSearchResponse>} Parsed object
+   * @param profileId The Profile ID to use
+   * @param searchKey Key value to use in the fields collection
+   * @param searchValue Unique identifier to use as the search value
+   * @returns Parsed object
    */
   async searchProfile(
     profileId: string,
@@ -106,7 +111,7 @@ export class TransformdApiClient {
 
   /**
    * Checks if the client has a valid authentication token.
-   * @returns {boolean} True if the client has a valid token
+   * @returns True if the client has a valid token
    */
   isAuthenticated(): boolean {
     return this.token.length > 0 && this.tokenExpires > new Date().getTime()
