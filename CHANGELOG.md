@@ -13,8 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Links to changelog and pull requests ([#26](https://github.com/robertwtucker/transformd-demo-connector/pull/26))
+- Changelog and supporting file locations ([#25](https://github.com/robertwtucker/transformd-demo-connector/pull/25))
 - Incorrect key names in generated response mappings ([#23](https://github.com/robertwtucker/transformd-demo-connector/pull/23))
 - Updated project links in the package file ([#22](https://github.com/robertwtucker/transformd-demo-connector/pull/22))
+
+### Changed
+
+- Various style changes per TypeScript style guide recommendation ([#27](https://github.com/robertwtucker/transformd-demo-connector/pull/27))
 
 ## [0.1.0] - 2023-07-18
 
