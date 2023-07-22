@@ -6,23 +6,21 @@
 import { TransformdDemoWebhookResponse } from './transformdDemoWebhookResponse'
 
 /**
- * POSTs a JSON data payload to the Transformd webhook to initiate a form
- * session. Constructor requires an Evolve web request connector.
+ * Calls the Transformd Demo Webhook to initiate a Form Session. Constructed
+ * with an Evolve web request connector to abstract the base URL and
+ * other sensitive auth info.
  */
 export class TransformdDemoWebhookClient {
-  private readonly connector: string
-
   /**
    * Instantiates a TransformdDemoWebhookClient using the URL represented
    * by the connector provided.
    * @param connector The name of the connector to use
    */
-  constructor(connector: string) {
-    this.connector = connector
-  }
+  constructor(private readonly connector: string) {}
 
   /**
-   * Calls the Transformd Demo Webhook with an to initiate a Form Session.
+   * POSTS a JSON object to the Transformd Demo Webhook to initiate the
+   * Form Session and returns the response.
    * @param payload An object (JSON) to send as the body
    * @returns Parsed object
    */
