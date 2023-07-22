@@ -6,6 +6,11 @@
 import { TransformdApiAuthTokenResponse } from './transformdApiAuthTokenResponse'
 import { TransformdApiProfileSearchResponse } from './transformdApiSearchProfileResponse'
 
+/**
+ * Front-ends calls to the Transformd API. First call to get an auth token
+ * will store the value and automatically attach it as a header to subsequent
+ * calls.
+ */
 export class TransformdApiClient {
   private readonly connector: string
   private token: string

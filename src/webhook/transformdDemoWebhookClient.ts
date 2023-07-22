@@ -5,6 +5,10 @@
 
 import { TransformdDemoWebhookResponse } from './transformdDemoWebhookResponse'
 
+/**
+ * POSTs a JSON data payload to the Transformd webhook to initiate a form
+ * session. Constructor requires an Evolve web request connector.
+ */
 export class TransformdDemoWebhookClient {
   private readonly connector: string
 
