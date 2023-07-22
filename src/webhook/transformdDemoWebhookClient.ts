@@ -11,7 +11,7 @@ export class TransformdDemoWebhookClient {
   /**
    * Instantiates a TransformdDemoWebhookClient using the URL represented
    * by the connector provided.
-   * @param {string} connector The name of the connector to use
+   * @param connector The name of the connector to use
    */
   constructor(connector: string) {
     this.connector = connector
@@ -19,8 +19,8 @@ export class TransformdDemoWebhookClient {
 
   /**
    * Calls the Transformd Demo Webhook with an to initiate a Form Session.
-   * @param {object} payload An object (JSON) to send as the body
-   * @returns {Promise<TransformdDemoWebhookResponse>} Parsed object
+   * @param payload An object (JSON) to send as the body
+   * @returns Parsed object
    */
   async send(payload: object): Promise<TransformdDemoWebhookResponse> {
     const headers = new Headers()

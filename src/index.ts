@@ -335,8 +335,8 @@ export async function execute(context: Context): Promise<void> {
  * Helper function to strip the root symbol ('$') from the JSONPath
  * expression provided (as required for materialization in the
  * evolve-data-transformations package).
- * @param {string} path JSONPath expression for the search value
- * @returns {string} The expression sans root symbol
+ * @param path JSONPath expression for the search value
+ * @returns The expression sans root symbol
  */
 function getJsonPathExpression(path: string): string {
   return path.startsWith('$') ? path.substring(1) : path
