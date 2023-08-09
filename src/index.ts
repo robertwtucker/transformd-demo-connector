@@ -184,35 +184,32 @@ export async function execute(context: Context): Promise<void> {
   const apiConnector = new TransformdApiClient(
     context.parameters.apiConnector as string
   )
-  const formSessionUrls: string[] = []
 
-  // Repeat process for each element in the search values array and/or record
-  // in the input file).
+  // Call webhook to initiate a form session with the complete input data file
+  // as the payload of the request.
   //
+  console.log(`Initiating form sessions (${searchValues.length})...`)
+  const webhookResponse = await webhookConnector.send(JSON.parse(inputData))
+  if (webhookResponse.status === 'created') {
+    console.log(`Event '${webhookResponse.event_id}' created.`)
+  } else {
+    // TODO: Check to see if status !== 'created' is an error
+    console.warn(`Webhook response status: ${webhookResponse.status}`)
+  }
+
+  // Insert a delay between calls to the webhook and the profile search
+  // API. This provides time for the sequence of tasks initiated by the
+  // webhook to finish.
+  //
+  await new Promise((resolve) =>
+    setTimeout(resolve, context.parameters.sequenceDelayMs as number)
+  )
+
+  // Repeat process for each element in the search values array.
+  //
+  const formSessionUrls: string[] = []
   for (let i = 0; i < searchValues.length; i++) {
     const searchValue = searchValues[i]
-
-    // Call webhook to initiate a form session with the input data record as
-    // the payload of the request.
-    //
-    console.log('Calling webhook to initiate a form session...')
-    const webhookResponse = await webhookConnector.send(inputJson[i])
-    if (webhookResponse.status === 'created') {
-      console.log(
-        `Event '${webhookResponse.event_id}' created for session identifier '${searchValue}'.`
-      )
-    } else {
-      // TODO: Check to see if status !== 'created' is an error
-      console.warn(`Webhook response status: ${webhookResponse.status}`)
-    }
-
-    // Insert a delay between calls to the webhook and the profile search
-    // API. This provides time for the sequence of tasks initiated by the
-    // webhook to finish.
-    //
-    await new Promise((resolve) =>
-      setTimeout(resolve, context.parameters.sequenceDelayMs as number)
-    )
 
     // Call the profile search API with the record's unique search value to
     // get back a URL for the form session that was initiated.
@@ -239,36 +236,22 @@ export async function execute(context: Context): Promise<void> {
     if (profileResponse.success) {
       switch (profileResponse.data.count) {
         case 0:
-          console.error(
+          throw new Error(
             `No profile found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionSearchKey}=${searchValue}`
           )
-          // TODO: Uncomment after testing
-          // throw new Error(
-          //   `No profile found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionSearchKey}=${searchValue}`
-          // )
           return
         case 1:
           break // Match found, continue to save form session URL
         default:
-          console.error(
+          throw new Error(
             `Multiple profiles found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionSearchKey}=${searchValue}`
           )
-          // TODO: Uncomment after testing
-          // throw new Error(
-          //   `Multiple profiles found with search params: id=${context.parameters.profileId}, ${context.parameters.sessionSearchKey}=${searchValue}`
-          // )
           return
       }
     } else {
-      console.error(
-        `Unexpected response from profile search API: ${JSON.stringify(
-          profileResponse
-        )}`
+      throw new Error(
+        `Profile response error: ${JSON.stringify(profileResponse)}`
       )
-      // TODO: Uncomment after testing
-      // throw new Error(
-      //   `Profile response error: ${JSON.stringify(profileResponse)}`
-      // )
       return
     }
 
