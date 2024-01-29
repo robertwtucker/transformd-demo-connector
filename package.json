@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/robertwtucker/transformd-demo-connector/blob/master/README.md",
   "devDependencies": {
-    "@quadient/evolve-scripting-api": "^0.0.39",
+    "@quadient/evolve-scripting-api": "^0.0.60",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.44.0",
