@@ -1,6 +1,6 @@
 {
   "name": "transformd-demo-connector",
-  "version": "0.1.0",
+  "version": "0.2.2",
   "description": "A demo Evolve component for integrating with Transformd",
   "type": "module",
   "private": true,
