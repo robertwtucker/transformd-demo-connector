@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Bumped `@quadient/evolve-scripting-api` to v0.0.121 ([#36](https://github.com/robertwtucker/transformd-demo-connector/pull/36))
+- Bumped `@quadient/evolve-data-transformations` to v0.0.34 ([#35](https://github.com/robertwtucker/transformd-demo-connector/pull/35))
+
 ## [0.2.2] - 2024-07-24
 
 ### Fixed
